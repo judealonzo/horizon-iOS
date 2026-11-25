@@ -23,8 +23,11 @@ the buttons change every control); Done keeps the layout in `touch-controls.txt`
 ## Get the .ipa
 
 `.github/workflows/ios-build.yml` builds it on GitHub's macOS runners, so you don't need a Mac.
-On a fork, open **Actions → iOS build → Run workflow**. When it finishes, download the
-`Horizon-ios` artifact from the run's page and unzip it to get `Horizon.ipa`.
+A new fork has Actions turned off: open its **Actions** tab and press **I understand my
+workflows, go ahead and enable them** first. Every push to the `ios-build` branch then builds it
+(**Run workflow** only shows on the fork's Actions page when this workflow is on its default
+branch), and publishes the .ipa as a pre-release, `ios-r<number>`, under the fork's **Releases**.
+The run's page also has it, as the `Horizon-ios` artifact: unzip it to get `Horizon.ipa`.
 
 ## Install it from Windows or Linux
 
