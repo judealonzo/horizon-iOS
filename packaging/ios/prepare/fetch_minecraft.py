@@ -19,6 +19,8 @@ import sys
 import urllib.request
 
 MANIFEST = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
+# Mojang serves every version JSON it has published under its own checksum.
+PACKAGE = "https://piston-meta.mojang.com/v1/packages/{sha1}/{version}.json"
 
 
 def fetch(url: str) -> bytes:
@@ -47,18 +49,28 @@ def save(url: str, path: pathlib.Path, expected: str | None) -> None:
     path.write_bytes(data)
 
 
+def version_json(lock: dict, manifest: dict, get=fetch) -> bytes:
+    """The version JSON to prepare from: the one Mojang lists now when research-lock.json knows it,
+    else the pinned one. Mojang republishes a version's JSON from time to time, and horizon-prepare
+    refuses one it doesn't know; the pinned one stays on Mojang's servers under its checksum."""
+    accepted = {lock["manifest_sha1"], *lock.get("accepted_manifest_sha1", [])}
+    entry = next(v for v in manifest["versions"] if v["id"] == lock["version"])
+    url, expected = entry["url"], entry["sha1"]
+    if expected not in accepted:
+        print(f"note: Mojang now lists {lock['version']} JSON {expected}, which research-lock.json "
+              f"doesn't know: using the pinned {lock['manifest_sha1']}")
+        url = PACKAGE.format(sha1=lock["manifest_sha1"], version=lock["version"])
+        expected = lock["manifest_sha1"]
+    data = get(url)
+    if sha1(data) != expected:
+        raise SystemExit(f"{url}: the version JSON does not match its checksum {expected}")
+    return data
+
+
 def main() -> None:
     root, out = map(pathlib.Path, sys.argv[1:3])
     lock = json.loads((root / "research-lock.json").read_text())["minecraft"]
-    accepted = {lock["manifest_sha1"], *lock.get("accepted_manifest_sha1", [])}
-    manifest = json.loads(fetch(MANIFEST))
-    entry = next(v for v in manifest["versions"] if v["id"] == lock["version"])
-    if entry["sha1"] not in accepted:
-        print(f"note: Mojang's {lock['version']} JSON is {entry['sha1']}, not one research-lock.json "
-              "lists; the jars are still checked against it")
-    version_bytes = fetch(entry["url"])
-    if sha1(version_bytes) != entry["sha1"]:
-        raise SystemExit("the version JSON does not match Mojang's manifest")
+    version_bytes = version_json(lock, json.loads(fetch(MANIFEST)))
     out.mkdir(parents=True, exist_ok=True)
     (out / "version.json").write_bytes(version_bytes)
     version = json.loads(version_bytes)
