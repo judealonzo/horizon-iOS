@@ -450,13 +450,36 @@ fn code_height(status: &Status) -> f32 {
     }
 }
 
-/// Where the parts go: the text's top and the first button's, below the logo (which ends at
-/// 81), moved up when the screen is short so that the last button stays on it.
+/// Where the parts go: the text's top and the first button's, below the header (`draw_header`,
+/// which ends at 70), moved up when the screen is short so that the last button stays on it.
 fn layout(h: f32, lines: usize, code: f32, buttons: usize) -> (f32, f32) {
     let text = lines as f32 * LINE;
     let height = text + code + 8.0 + buttons as f32 * 24.0;
     let top = (h / 4.0 + 20.0).max(90.0).min(h - height - 8.0).max(4.0);
     (top, top + text + code + 8.0)
+}
+
+/// The screen's name, twice the text's size, over the notice Horizon puts on everything it makes:
+/// a sign-in screen must not pass for Mojang's or Microsoft's own (the EULA's "tools and services
+/// that don't seem official"), so the game's logo stays off it. It ends above `layout`'s 90.
+fn draw_header(atlas: &HudAtlas, batch: &mut HudBatch, w: f32) {
+    let first = batch.vertices.len();
+    let title = lang::get_or("horizon.launcher.title", "Horizon Launcher");
+    centered(atlas, batch, &title, 30.0, rgba(255, 255, 255, 255));
+    batch.scale_since(first, (w / 2.0).floor(), 34.0, 2.0, 2.0);
+    let notice = lang::get_or(
+        "horizon.launcher.unofficial",
+        "Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.",
+    );
+    for (i, line) in wrapped(atlas, &notice, TEXT_WIDTH).iter().enumerate() {
+        centered(
+            atlas,
+            batch,
+            line,
+            50.0 + i as f32 * LINE,
+            rgba(170, 170, 170, 255),
+        );
+    }
 }
 
 /// The text wrapped to the screen's width, line by line.
@@ -519,7 +542,7 @@ impl Title {
             return;
         };
         crate::ui::menu_background(batch, atlas, 0.0, 0.0, w, h, false);
-        super::draw_logo(atlas, batch, w);
+        draw_header(atlas, batch, w);
         let status = launcher.status();
         let lines = wrapped_lines(atlas, &status);
         self.message_lines.set(lines.len());
