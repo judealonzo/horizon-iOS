@@ -44,6 +44,10 @@ jobs:
           IPHONEOS_DEPLOYMENT_TARGET: "15.0"
           # The fork whose "Native mods for iOS" issue the app's Native tab ticks.
           HORIZON_IOS_REPO: ${{ github.repository }}
+          # The in-game launcher's Microsoft sign-in (title/launcher.rs, msa.rs): the fork's own
+          # Azure app, approved by Mojang, as a repository variable (Settings → Secrets and
+          # variables → Actions → Variables). Client IDs are public. Empty: sign-in is off.
+          HORIZON_MSA_CLIENT_ID: ${{ vars.HORIZON_MSA_CLIENT_ID }}
         run: cargo build --profile fast --locked --target aarch64-apple-ios -p horizon-client --bin horizon-client
       - name: Package
         id: package

@@ -164,6 +164,16 @@ impl Title {
         self.mode = Mode::Onboarding(Onboarding::new());
     }
 
+    /// `Gui.addInitialScreens`: the in-game launcher first where it shows (`launcher::wanted`),
+    /// then the accessibility onboarding on a first launch (`onboard`).
+    pub fn start_initial_screens(&mut self, onboard: bool) {
+        if super::launcher::wanted() {
+            self.start_launcher(onboard);
+        } else if onboard {
+            self.start_onboarding();
+        }
+    }
+
     /// `onClose`: Escape and Continue fade the screen out.
     pub(super) fn onboarding_close(&self) {
         if let Mode::Onboarding(screen) = &self.mode {

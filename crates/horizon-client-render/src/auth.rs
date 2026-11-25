@@ -5,7 +5,7 @@
 //! process's memory: it is never logged, printed or written anywhere.
 use std::{
     path::Path,
-    sync::{Arc, Mutex, OnceLock},
+    sync::{Arc, Mutex, RwLock},
     time::{Duration, SystemTime},
 };
 
@@ -48,6 +48,12 @@ impl AuthSession {
             xuid: None,
             access_token: access_token.to_owned(),
         }
+    }
+
+    /// The Xbox user id the sign-in returned (vanilla's `User.xuid`).
+    pub fn with_xuid(mut self, xuid: Option<String>) -> Self {
+        self.xuid = xuid;
+        self
     }
 
     pub fn access_token(&self) -> &str {
@@ -123,14 +129,19 @@ impl AuthSession {
     }
 }
 
-static CURRENT: OnceLock<Arc<AuthSession>> = OnceLock::new();
+static CURRENT: RwLock<Option<Arc<AuthSession>>> = RwLock::new(None);
 
-/// The account this game was started with (set once at start).
+/// The signed-in account: the launcher's, set at start from its session file, or the in-game
+/// launcher's (`msa`, iOS), set when the player presses Play after signing in there.
 pub fn set_current(session: AuthSession) {
-    let _ = CURRENT.set(Arc::new(session));
+    *CURRENT.write().unwrap_or_else(|e| e.into_inner()) = Some(Arc::new(session));
+}
+/// The in-game launcher's Sign Out: online-mode servers are out of reach again.
+pub fn clear_current() {
+    *CURRENT.write().unwrap_or_else(|e| e.into_inner()) = None;
 }
 pub fn current() -> Option<Arc<AuthSession>> {
-    CURRENT.get().cloned()
+    CURRENT.read().unwrap_or_else(|e| e.into_inner()).clone()
 }
 
 /// Why joining a server through the session service failed, like the

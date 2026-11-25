@@ -47,7 +47,12 @@ pub fn open_uri(uri: &str) {
     if let Err(error) = open::that_detached(uri) {
         log::warn!("Horizon: could not open URI {uri}: {error}");
     }
-    #[cfg(not(windows))]
+    // An iPhone can't start a program: UIKit opens the link.
+    #[cfg(target_os = "ios")]
+    if !horizon_client::open_url::open(uri) {
+        log::warn!("Horizon: could not open URI {uri}");
+    }
+    #[cfg(not(any(windows, target_os = "ios")))]
     open_folder(Path::new(uri));
 }
 /// The resource root to load from, given the vanilla root, the selection and

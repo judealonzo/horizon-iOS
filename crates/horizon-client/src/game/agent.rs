@@ -675,6 +675,10 @@ impl Game<'_> {
                 json!({ "mode": "multiplayer-warning", "check": check })
             }
             Mode::Onboarding(_) => json!({ "mode": "accessibility-onboarding" }),
+            Mode::Launcher(launcher) => json!({
+                "mode": "launcher",
+                "status": format!("{:?}", launcher.status()),
+            }),
             Mode::BanNotice(_) => json!({ "mode": "ban-notice" }),
         }
     }

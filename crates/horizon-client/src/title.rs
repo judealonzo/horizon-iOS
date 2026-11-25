@@ -20,6 +20,7 @@ mod confirm_experiments;
 mod create_world;
 mod experiments;
 mod flat;
+pub mod launcher;
 mod onboarding;
 #[cfg(test)]
 mod tests;
@@ -27,6 +28,7 @@ pub mod world_management;
 pub use buffet::State as BuffetEditor;
 pub use create_world::{DIFFICULTIES, WorldOptions};
 pub use flat::{FlatLayer, FlatSettings, State as FlatEditor};
+pub use launcher::Launcher;
 pub use onboarding::Onboarding;
 
 /// SelectWorldScreen's `HeaderAndFooterLayout(8 + 9 + 8 + 20 + 4, 60)`.
@@ -360,6 +362,9 @@ pub enum Mode {
     },
     /// AccessibilityOnboardingScreen: the first screen of a first launch.
     Onboarding(Onboarding),
+    /// The in-game launcher (`launcher.rs`): the first screen of the iPhone and iPad build, where
+    /// the player signs in with their Microsoft account before Play.
+    Launcher(Launcher),
     /// `BanNoticeScreens`: a ConfirmLinkScreen `Gui.addInitialScreens` queued.
     BanNotice(crate::ban_notice::Notice),
 }
@@ -741,6 +746,7 @@ impl Mode {
             Self::Multiplayer(screen) => screen.id(),
             Self::MultiplayerWarning { .. } => "multiplayer_warning",
             Self::Onboarding(_) => "onboarding",
+            Self::Launcher(_) => "horizon_launcher",
             Self::BanNotice(_) => "ban_notice",
         }
     }
@@ -2212,6 +2218,7 @@ impl Title {
                 ]
             }
             Mode::Onboarding(_) => self.onboarding_buttons(w, h),
+            Mode::Launcher(_) => self.launcher_buttons(w, h),
             Mode::BanNotice(_) => {
                 // ConfirmLinkScreen.addButtons: Open in Browser, Copy to Clipboard, then the
                 // notice's Acknowledge, 100 wide each.
@@ -2357,6 +2364,10 @@ Running out of disk space while in game can lead to your world being damaged.",
 
 Would you like to enable the Narrator or visit the Accessibility Settings?",
                 ),
+            ),
+            Mode::Launcher(_) => ScreenInfo::new(
+                "horizon_launcher",
+                get("horizon.launcher.title", "Horizon Launcher"),
             ),
             // BanNoticeScreens: a ConfirmLinkScreen, its title and message.
             Mode::BanNotice(notice) => {
@@ -3182,6 +3193,7 @@ Would you like to enable the Narrator or visit the Accessibility Settings?",
                 );
             }
             Mode::Onboarding(_) => fade_from = Some(self.draw_onboarding(atlas, batch, w, h)),
+            Mode::Launcher(_) => self.draw_launcher(atlas, batch, w, h),
             Mode::BanNotice(notice) => {
                 crate::ui::menu_background(batch, atlas, 0.0, 0.0, w, h, false);
                 let now = chrono::Utc::now().timestamp_millis();
@@ -3589,6 +3601,7 @@ Would you like to enable the Narrator or visit the Accessibility Settings?",
                 self.onboarding_close();
                 Action::None
             }
+            (Mode::Launcher(_), Some(id)) => self.launcher_click(id),
             (Mode::Main, Some(3)) => Action::Options,
             (Mode::Main, Some(7)) => Action::Accessibility,
             (Mode::Main, Some(6)) => Action::Language,
@@ -4692,6 +4705,7 @@ Would you like to enable the Narrator or visit the Accessibility Settings?",
             Mode::Create { .. } => self.cancel_create(),
             // Screen.keyPressed: Escape closes the screen, which fades out.
             Mode::Onboarding(_) => self.onboarding_close(),
+            Mode::Launcher(_) => self.launcher_escape(),
             // ConfirmScreen.keyPressed: Escape answers no, which runs `next`.
             Mode::BanNotice(_) => self.next_ban_notice(),
             _ => self.mode = Mode::Main,

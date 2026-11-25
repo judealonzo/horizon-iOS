@@ -195,6 +195,8 @@ jobs:
         env:
           IPHONEOS_DEPLOYMENT_TARGET: "15.0"
           HORIZON_IOS_REPO: ${{ github.repository }}
+          # The in-game launcher's Microsoft sign-in, as in ios-build.yml.
+          HORIZON_MSA_CLIENT_ID: ${{ vars.HORIZON_MSA_CLIENT_ID }}
         run: >-
           cargo build --profile fast --locked --target aarch64-apple-ios
           -p ${{ needs.stage.outputs.package }} --bin horizon-client ${{ needs.stage.outputs.features }}

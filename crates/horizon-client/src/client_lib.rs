@@ -16,7 +16,7 @@ pub use horizon_client_render::{
     effects, environment, extras, fast_hash, fog, font, gfx, graphics, graphics_style, graphics_ui,
     hdr_calibration, hud, hud_layout, hud_overlays, inventory_effects, java_text, jigsaw_block,
     json_folder, level_loading, light, lod, logging, menu_blur, mesher, minimap, mipmap, mod_list,
-    mod_registry, model_library, models, multiline_edit, native_emissive, options_file,
+    mod_registry, model_library, models, msa, multiline_edit, native_emissive, options_file,
     options_fixes, options_ui, overlay, pack_browser, pack_screen, packs, pad_cursor, par,
     particles, poi_sections, post_chain, potent_sulfur, preedit, providers, pvp, pvp_hud,
     screen_draw, screen_effects, sculk, section_mask, server_terrain, settings, shader_options,
@@ -166,6 +166,7 @@ pub use horizon_client_input::key_names;
 pub use horizon_client_input::keybinds;
 pub use horizon_client_input::keymapping;
 pub use horizon_client_input::mouse;
+pub use horizon_client_input::open_url;
 pub use horizon_client_input::screen_keyboard;
 pub use horizon_client_input::window;
 pub use horizon_command as command;

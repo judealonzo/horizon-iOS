@@ -58,10 +58,35 @@ the Files app or Finder/iTunes file sharing.
    app to unzip it, and move the `resources` folder into **On My iPhone → Horizon**.
 4. Open Horizon (close it first if it was showing the files screen).
 
+## Sign in with Microsoft (online servers)
+
+The app opens on a small launcher (`crates/horizon-client/src/title/launcher.rs`). **Sign in with
+Microsoft** shows a code: tap **Open Sign-in Page** (the code is copied for you), sign in at
+microsoft.com/link with the account that owns Java Edition, paste the code, then come back to
+Horizon. Once it says **Signed in as** your name, **Play** hands the account to the game:
+online-mode servers, Realms and your skin use it. **Play Offline** skips it. The sign-in is kept for
+the next start in the app's Library folder, which the Files app doesn't show, and is renewed when
+its Minecraft token runs low; **Sign Out** forgets it.
+
+Sign-in needs a Microsoft app ID (an Azure client ID) that Mojang has approved for the Minecraft
+services. Horizon's own ID isn't in the source and must not be borrowed
+([docs/microsoft-account.md](../../docs/microsoft-account.md)), so a fork brings its own:
+
+1. Register an app as that doc's "Azure app registration" says (personal Microsoft accounts,
+   **Allow public client flows: Yes**). A personal Microsoft account first needs its own Azure
+   directory: sign up for a free Azure account in a private window, then open the portal.
+2. Apply for Minecraft API access with the form linked from https://aka.ms/mce-reviewappid.
+   Approval takes days to weeks; until then sign-in stops at the Minecraft step and says so.
+3. In your fork on GitHub: **Settings → Secrets and variables → Actions → Variables → New
+   repository variable**, name `HORIZON_MSA_CLIENT_ID`, value the app's client ID. Build again:
+   Actions → iOS build → the latest run → **Re-run all jobs** (a run reads the variable when it
+   starts), or push to `ios-build`.
+
+Without the variable, the launcher says sign-in is off and offers Play Offline.
+
 ## What is missing
 
-- The PC launcher's pages: Microsoft sign-in (online servers), instances, modpacks, servers and
-  the wardrobe. Single player and LAN play without them.
+- The PC launcher's other pages: instances, modpacks, servers and the wardrobe.
 - Native mods: they are Rust code the launcher compiles into the game, which an iPhone can't do.
 - An on-screen keyboard for text fields (world names, chat, server addresses).
 - The system clipboard (UIPasteboard). Copied text stays in the game for now.

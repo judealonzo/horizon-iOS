@@ -101,10 +101,8 @@ impl StartupMenu {
             );
             title.last_server = settings.file.string("lastServer");
             title.skip_multiplayer_warning = settings.file.bool("skipMultiplayerWarning");
-            // Gui.addInitialScreens: the accessibility onboarding comes first.
-            if settings.file.bool("onboardAccessibility") {
-                title.start_onboarding();
-            }
+            // Gui.addInitialScreens: the in-game launcher (iOS), then the accessibility onboarding.
+            title.start_initial_screens(settings.file.bool("onboardAccessibility"));
             self.title = Some(title);
         }
     }
